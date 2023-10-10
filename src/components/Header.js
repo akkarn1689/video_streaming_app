@@ -1,16 +1,60 @@
-import React from "react";
-import { useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { toggleSidebar } from "../utils/appSlice";
+import { YOUTUBE_SEARCH_API, YOUTUBE_SEARCH_SUGGESTIONS_API, SEARCH_SUGGESTIONS_API } from "../utils/constants";
+import { cacheSearchResults } from "../utils/searchSlice";
 
 const Header = () => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [recommendations, setRecommendations] = useState([]);
+    const [showRecommendations, setShowRecommendations] = useState(false);
+
     const dispatch = useDispatch();
+    const searchCache = useSelector((store) => store.search);
+
+    useEffect(() => {
+
+        // console.log(searchQuery);
+        const debounceTimer = setTimeout(() => {
+            if (searchCache[searchQuery]) {
+                setRecommendations(searchCache[searchQuery]);
+            }
+            else {
+                getSearchRecommendations();
+            }
+
+
+        }, 200);
+
+        return () => {
+            clearTimeout(debounceTimer);
+        }
+
+    }, [searchQuery]);
+
+    const getSearchRecommendations = async () => {
+        // const recommendations = await fetch(YOUTUBE_SEARCH_SUGGESTIONS_API + searchQuery); // use this instead
+        const recommendations = await fetch(YOUTUBE_SEARCH_API + searchQuery, { method: "GET", mode: "cors" });
+        // const recommendations = await fetch(SEARCH_SUGGESTIONS_API + searchQuery);
+        const json = await recommendations.json();
+        // console.log(json);
+
+        setRecommendations(json[1]);
+
+        dispatch(
+            cacheSearchResults({
+                [searchQuery]: json[1],
+            })
+        );
+    }
 
     const toggleSidebarHandler = () => {
         dispatch(toggleSidebar());
     };
 
     return (
-        <div className="grid grid-flow-col p-5 m-2 shadow-lg">
+        <div className="grid grid-flow-col p-2 m-2 shadow-lg">
             <div className="flex col-span-1">
                 <img
                     onClick={() => toggleSidebarHandler()}
@@ -26,9 +70,26 @@ const Header = () => {
                     />
                 </a>
             </div>
-            <div className="col-span-10 text-center">
-                <input className="w-2/5 border border-gray-400 p-2 rounded-l-full" type="text" />
-                <button className="border border-gray-400 p-2 text-gray-500 rounded-r-full">Search</button>
+            <div className="col-span-10 px-10">
+                <div className="">
+                    <input
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={(e) => setShowRecommendations(true)}
+                        onBlur={(e) => setShowRecommendations(false)}
+                        className="w-1/2 border border-gray-400 p-2 rounded-l-full"
+                        type="text"
+                    />
+                    <button className="border border-gray-400 px-5 py-2 text-gray-500 rounded-r-full">🔍</button>
+                </div>
+                <div className="absolute w-[34rem] bg-white shadow-lg rounded-lg border border-gray">
+                    <ul>
+                        {
+                            showRecommendations && recommendations.map((item) => (
+                                <li key={item} className="py-2 px-4 shadow-sm hover:bg-gray-100 hover:rounded-lg">🔍 {item}</li>
+                            ))
+                        }
+                    </ul>
+                </div>
             </div>
             <div className="col-span-1">
                 <img

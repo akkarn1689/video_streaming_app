@@ -7,7 +7,7 @@ const Sidebar = () => {
   if(!isSidebarOpen) return null;
   
   return (
-    <div className='p-5 w-48 shadow-sm'>
+    <div className='p-4 w-48 shadow-sm'>
       <div className='font-semibold pb-3'>
         <ul>
           <li>Home</li>
