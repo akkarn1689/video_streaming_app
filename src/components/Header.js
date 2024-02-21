@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleSidebar } from "../utils/appSlice";
-import { YOUTUBE_SEARCH_API, YOUTUBE_SEARCH_SUGGESTIONS_API, SEARCH_SUGGESTIONS_API } from "../utils/constants";
+import { YOUTUBE_SEARCH_API, YOUTUBE_SEARCH_SUGGESTIONS_API } from "../utils/constants";
 import { cacheSearchResults } from "../utils/searchSlice";
 
 const Header = () => {
@@ -12,33 +12,51 @@ const Header = () => {
 
     const dispatch = useDispatch();
     const searchCache = useSelector((store) => store.search);
+    const [isSidebar, setSidebar] = useState(true);
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        // console.log(searchQuery);
-        const debounceTimer = setTimeout(() => {
-            if (searchCache[searchQuery]) {
-                setRecommendations(searchCache[searchQuery]);
-            }
-            else {
-                getSearchRecommendations();
-            }
+    //     // console.log(searchQuery);
+    //     // if(searchQuery!=="") {
+    //     //     const debounceTimer = setTimeout(() => {
+    //     //         if (searchCache[searchQuery]) {
+    //     //             setRecommendations(searchCache[searchQuery]);
+    //     //         }
+    //     //         else {
+    //     //             getSearchRecommendations();
+    //     //         }
+    
+    
+    //     //     }, 200);
+    
+    //     //     return () => {
+    //     //         clearTimeout(debounceTimer);
+    //     //     }
+    //     // }
+
+    //     const debounceTimer = setTimeout(() => {
+    //         if (searchCache[searchQuery]) {
+    //             setRecommendations(searchCache[searchQuery]);
+    //         }
+    //         else {
+    //             getSearchRecommendations();
+    //         }
 
 
-        }, 200);
+    //     }, 200);
 
-        return () => {
-            clearTimeout(debounceTimer);
-        }
+    //     return () => {
+    //         clearTimeout(debounceTimer);
+    //     }
 
-    }, [searchQuery]);
+    // }, [searchQuery]);
 
     const getSearchRecommendations = async () => {
         // const recommendations = await fetch(YOUTUBE_SEARCH_SUGGESTIONS_API + searchQuery); // use this instead
         const recommendations = await fetch(YOUTUBE_SEARCH_API + searchQuery, { method: "GET", mode: "cors" });
         // const recommendations = await fetch(SEARCH_SUGGESTIONS_API + searchQuery);
         const json = await recommendations.json();
-        // console.log(json);
+        console.log(json);
 
         setRecommendations(json[1]);
 
@@ -49,6 +67,9 @@ const Header = () => {
         );
     }
 
+    // const toggleSidebarHandler = () => {
+    //     dispatch(toggleSidebar());
+    // };
     const toggleSidebarHandler = () => {
         dispatch(toggleSidebar());
     };
@@ -79,14 +100,14 @@ const Header = () => {
                         className="w-1/2 border border-gray-400 p-2 rounded-l-full"
                         type="text"
                     />
-                    <button className="border border-gray-400 px-5 py-2 text-gray-500 rounded-r-full">🔍</button>
+                    <button onClick={getSearchRecommendations} className="border border-gray-400 px-5 py-2 text-gray-500 rounded-r-full">🔍</button>
                 </div>
                 <div className="absolute w-[34rem] bg-white shadow-lg rounded-lg border border-gray">
                     <ul>
                         {
-                            showRecommendations && recommendations.map((item) => (
+                            (showRecommendations && (recommendations?.length!==0)) ? recommendations?.map((item) => (
                                 <li key={item} className="py-2 px-4 shadow-sm hover:bg-gray-100 hover:rounded-lg">🔍 {item}</li>
-                            ))
+                            )):null
                         }
                     </ul>
                 </div>
